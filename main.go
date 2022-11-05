@@ -7,23 +7,32 @@ import (
 	"syscall/js"
 )
 
-type PromiseHandle = func(resolve js.Value, reject js.Value)
+type PromiseHandle = func(resolve js.Value, reject js.Value, args []js.Value)
 
 func main() {
-	fmt.Println("Yo yo yo")
+	fmt.Println("Go Webassembly initialized")
 
-	js.Global().Set("request", promisify(func(resolve js.Value, reject js.Value) {
+	js.Global().Set("request", promisify(func(resolve js.Value, reject js.Value, args []js.Value) {
+		fmt.Println("Go recieved function args: ", args)
 
-		res, err := http.Get("https://jsonplaceholder.typicode.com/todos")
+		url := (args)[0].String()
+
+		res, err := http.Get(url)
+
+		errConstructor := js.Global().Get("Error")
 
 		if err != nil {
-			reject.Invoke("Shit happend")
+			obj := errConstructor.New(err.Error())
+			reject.Invoke(obj)
 		}
 
 		data, err := io.ReadAll(res.Body)
 
+		defer res.Body.Close()
+
 		if err != nil {
-			reject.Invoke("Shit happend")
+			obj := errConstructor.New(err.Error())
+			reject.Invoke(obj)
 		}
 
 		resolve.Invoke(string(data))
@@ -33,12 +42,12 @@ func main() {
 }
 
 func promisify(fn PromiseHandle) js.Func {
-	return js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	return js.FuncOf(func(this js.Value, input []js.Value) any {
+		handler := js.FuncOf(func(this js.Value, args []js.Value) any {
 			resolve := args[0]
 			reject := args[1]
 
-			go fn(resolve, reject)
+			go fn(resolve, reject, input)
 
 			return nil
 		})

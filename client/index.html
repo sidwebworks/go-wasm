@@ -5,10 +5,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="wasm_exec.js"></script>
   </head>
-  <body>
-    <h1>Hello world</h1>
+  <body class="bg-neutral-900">
+    <h1 class="text-center text-5xl my-5 text-yellow-500 font-bold">AnthonyGG 🔥</h1>
+
+    <pre id="result" class="text-green-500"> </pre>
 
     <script type="module">
       const go = new Go();
@@ -18,11 +21,18 @@
         go.importObject
       );
 
+      // Execute the wasm module
       go.run(mod.instance);
 
-      const result = await request();
+      // Call our Go function that we set on JS global scope as `request`
+      const raw = await request('https://jsonplaceholder.typicode.com/todos');
 
-      console.log(JSON.parse(result));
+      // Take the return string and parse to JSON
+      const parsed = JSON.parse(raw);
+      
+      console.log(parsed);
+
+      document.getElementById('result').innerText = JSON.stringify(parsed, null, 2);
     </script>
   </body>
 </html>
