@@ -6,7 +6,7 @@
 GOOS=js GOARCH=wasm go build -o ./client/main.wasm
 ```
 
-## Copying get the `wasm_exec.js` script
+## Copying the `wasm_exec.js` script
 
 ```sh
 cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ./client
